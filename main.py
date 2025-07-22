@@ -43,6 +43,7 @@ def packages():
     license = request.args.get('license', default=None, type=str)
     server_platform = request.args.get('server_platform', default=None, type=str)
     project_type = request.args.get('project_type', default=None, type=str)
+    search = request.args.get('search', default=None, type=str)
 
     # Calculate offset
     offset = (page - 1) * per_page
@@ -52,6 +53,13 @@ def packages():
                    FROM packages LIMIT %s
                    OFFSET %s
                    """, (per_page, offset))
+
+    if search is not None:
+        cursor.execute("""
+        SELECT *
+        FROM packages
+        WHERE SOUNDEX(name) = SOUNDEX(%s)
+        """, search)
 
     if project_type is not None:
         cursor.execute("""
