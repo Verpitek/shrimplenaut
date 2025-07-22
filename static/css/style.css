@@ -1,0 +1,32 @@
+@font-face {
+    font-family: 'Courier'; /* Give your font a name */
+    src: url('../fonts/CourierPrime-Regular.woff2') format('woff2'), /* Modern browsers */
+         url('../fonts/CourierPrime-Regular.woff') format('woff');   /* Older browsers */
+    font-weight: normal; /* Define the weight for this specific file */
+    font-style: normal;
+    font-display: swap; /* Important for performance: show fallback text while loading */
+}
+
+body {
+    font-family: Courier, serif;
+}
+
+h1 {
+    color: #e29a86;
+}
+
+h2 {
+    color: #e29a86ff;
+}
+
+p {
+    color: #ffeae2;
+}
+
+a {
+    color: #e2d086;
+}
+
+#footer {
+    color : #e1ff00ff;
+}

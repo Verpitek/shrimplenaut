@@ -1,0 +1,45 @@
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shrimplenaut by Verpitek - Package management and distribution for Bedrock servers and addons</title>
+    <meta name="description" content="Shrimplenaut is a package management and distribution platform designed for Minecraft Bedrock servers and Bedrock addons.">
+    <meta name="keywords" content="Shrimplenaut, Verpitek, Minecraft Bedrock, Bedrock server, package management, addon distribution, Minecraft addons, server tools, mod management">
+    <meta name="author" content="Verpitek">
+
+    <meta property="og:title" content="Shrimplenaut by Verpitek - Package management and distribution for Bedrock servers and addons">
+    <meta property="og:description" content="Shrimplenaut is a package management and distribution platform designed for Minecraft Bedrock servers and Bedrock addons.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="shrimplenaut.verpitek.com"> <meta property="og:image" content="{{ url_for('static', filename='img/shrimplenaut.png') }}"> <meta property="og:image:alt" content="Shrimplenaut Logo">
+
+
+     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="canonical" href="shrimplenaut.verpitek.com"> </head>
+<body style="background: #494949">
+        <section>
+            <div style="text-align: center">
+            <nav><a href="{{ url_for('index') }}">Home</a></nav>
+            </div>
+            <h2>How to use Shrimplenaut?</h2>
+            <p><strong>/packages</strong> - this is where all the packages are retrieved, by default the packages start from the oldest to newest, 10 items per page, starting at page 1</p>
+<p>You can apply custom parameters for easier filtering of results</p>
+<p><strong>?page</strong> - sets the page, example usage: <code>shrimplenaut.verpitek.com/packages?page=2</code></p>
+<p><strong>?per_page</strong> - sets the amount of items to return per page, example usage: <code>shrimplenaut.verpitek.com/packages?per_page=5</code></p>
+<p><strong>?tag</strong> - lets you filter packages by a tag, example usage: <code>shrimplenaut.verpitek.com/packages?tag=Economy</code></p>
+<p>Full example:
+<code>`shrimplenaut.verpitek.com/packages?page=2?per_page=5?tag=Economy</code></p>
+
+        </section>
+        <section>
+            <img src="{{ url_for('static', filename='img/shrimp-as.gif') }}">
+        </section>
+    </main>
+
+    <footer>
+        <p id="footer">&copy; 2025 Verpitek. All rights reserved.</p>
+    </footer>
+</body>
+</html>
