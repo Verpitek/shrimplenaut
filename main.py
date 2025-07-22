@@ -1,4 +1,5 @@
 import pymysql
+import pymysql.cursors
 from flask import Flask, jsonify, request, render_template
 import math
 import os
@@ -19,7 +20,7 @@ db = pymysql.connect(host=host,
                      user=user,
                      password=password,
                      database=db)
-cursor = db.cursor()
+cursor = db.cursor(pymysql.cursors.DictCursor)
 
 cursor.execute("SELECT * FROM packages")
 rows = cursor.fetchall()
@@ -37,6 +38,7 @@ def packages():
     page = request.args.get('page', default=1, type=int)
     per_page = min(request.args.get('per_page', default=10, type=int), 100)  # Max 100 items
     tag = request.args.get('tag', default=None, type=str)
+    id = request.args.get('id', default=None, type=str)
 
     # Calculate offset
     offset = (page - 1) * per_page
@@ -55,12 +57,18 @@ def packages():
         LIMIT %s
         OFFSET %s
         """, (tag, per_page, offset))
+    if id is not None:
+        cursor.execute("""
+        SELECT *
+        FROM packages
+        WHERE id = %s
+        """, id)
     rows = cursor.fetchall()
 
     # Get total count for pagination metadata
-    cursor.execute("SELECT COUNT(*) FROM packages")
-    total_items = cursor.fetchone()[0]
-    total_pages = math.ceil(total_items / per_page)
+    cursor.execute("SELECT COUNT(*) AS total_count FROM packages")
+    total_items = cursor.fetchone()
+    total_pages = math.ceil(total_items['total_count'] / per_page)
 
     return jsonify({
         "items": rows,

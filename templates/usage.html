@@ -29,9 +29,10 @@
 <p><strong>?page</strong> - sets the page, example usage: <code>shrimplenaut.verpitek.com/packages?page=2</code></p>
 <p><strong>?per_page</strong> - sets the amount of items to return per page, example usage: <code>shrimplenaut.verpitek.com/packages?per_page=5</code></p>
 <p><strong>?tag</strong> - lets you filter packages by a tag, example usage: <code>shrimplenaut.verpitek.com/packages?tag=Economy</code></p>
+            <p><strong>?id</strong> - lets you find a package by an id, but other filters are ignored: <code>shrimplenaut.verpitek.com/packages?id=2</code></p>
 <p>Full example:
-<code>`shrimplenaut.verpitek.com/packages?page=2?per_page=5?tag=Economy</code></p>
-
+    <code>shrimplenaut.verpitek.com/packages?page=2?per_page=5?tag=Economy</code>
+</p>
         </section>
         <section>
             <img src="{{ url_for('static', filename='img/shrimp-as.gif') }}">
