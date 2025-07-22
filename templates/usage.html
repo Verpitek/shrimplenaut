@@ -24,15 +24,34 @@
             <nav><a href="{{ url_for('index') }}">Home</a></nav>
             </div>
             <h2>How to use Shrimplenaut?</h2>
+            <hr />
             <p><strong>/packages</strong> - this is where all the packages are retrieved, by default the packages start from the oldest to newest, 10 items per page, starting at page 1</p>
 <p>You can apply custom parameters for easier filtering of results</p>
 <p><strong>?page</strong> - sets the page, example usage: <code>shrimplenaut.verpitek.com/packages?page=2</code></p>
+            <hr />
 <p><strong>?per_page</strong> - sets the amount of items to return per page, example usage: <code>shrimplenaut.verpitek.com/packages?per_page=5</code></p>
+<p>the default is set to 10, and the max is 100</p>
+            <hr />
 <p><strong>?tag</strong> - lets you filter packages by a tag, example usage: <code>shrimplenaut.verpitek.com/packages?tag=Economy</code></p>
+            <p>possible selections: Economy, Library, Management, Minigame, Chat, Cursed, Misc, Utility and Tools, Game Mechanics</p>
+            <hr />
             <p><strong>?id</strong> - lets you find a package by an id, but other filters are ignored: <code>shrimplenaut.verpitek.com/packages?id=2</code></p>
+            <hr />
+            <p><strong>?name</strong> - lets you find a package by its name, but other filters are ignored: <code>shrimplenaut.verpitek.com/packages?name=Economy Pilot</code></p>
+            <hr />
+            <p><strong>?license</strong> - lets you find a package by its license, but other filters are ignored: <code>shrimplenaut.verpitek.com/packages?license=MIT</code></p>
+            <p>possible selections: Economy, Library, Management, Minigame, Chat, Cursed, Misc, Utility and Tools, Game Mechanics</p>
+            <hr />
+            <p><strong>?server_software</strong> - lets you find a package by its server software, but other filters are ignored: <code>shrimplenaut.verpitek.com/packages?server_software=endstone</code></p>
+            <p>possible selections: endstone, leviLamina</p>
+            <hr />
+            <p><strong>?project_type</strong> - lets you find a package by project type, but other filters are ignored: <code>shrimplenaut.verpitek.com/packages?project_type=plugin</code></p>
+            <p>plugin, addon, vAddon, structure</p>
+            <hr />
 <p>Full example:
     <code>shrimplenaut.verpitek.com/packages?page=2?per_page=5?tag=Economy</code>
 </p>
+            <hr />
         </section>
         <section>
             <img src="{{ url_for('static', filename='img/shrimp-as.gif') }}">

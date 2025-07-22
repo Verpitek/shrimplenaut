@@ -36,19 +36,55 @@ def usage():
 def packages():
     # Get pagination parameters with defaults and constraints
     page = request.args.get('page', default=1, type=int)
-    per_page = min(request.args.get('per_page', default=10, type=int), 100)  # Max 100 items
+    per_page = min(request.args.get('per_page', default=10, type=int), 100)
     tag = request.args.get('tag', default=None, type=str)
     id = request.args.get('id', default=None, type=str)
+    name = request.args.get('name', default=None, type=str)
+    license = request.args.get('license', default=None, type=str)
+    server_platform = request.args.get('server_platform', default=None, type=str)
+    project_type = request.args.get('project_type', default=None, type=str)
 
     # Calculate offset
     offset = (page - 1) * per_page
 
-    # Fetch paginated results
     cursor.execute("""
                    SELECT *
                    FROM packages LIMIT %s
                    OFFSET %s
                    """, (per_page, offset))
+
+    if project_type is not None:
+        cursor.execute("""
+        SELECT *
+        FROM packages
+        WHERE project_type = %s
+        LIMIT %s OFFSET %s
+        """, (project_type, per_page, offset))
+
+    if license is not None:
+        cursor.execute("""
+        SELECT *
+        FROM packages
+        WHERE license = %s
+        LIMIT %s OFFSET %s
+        """, (license, per_page, offset))
+
+    if server_platform is not None:
+        cursor.execute("""
+        SELECT *
+        FROM packages
+        WHERE server_platform = %s
+        LIMIT %s OFFSET %s
+        """, (server_platform, per_page, offset))
+
+    if name is not None:
+        cursor.execute("""
+        SELECT *
+        FROM packages
+        WHERE name = %s
+        LIMIT %s OFFSET %s
+        """, (name, per_page, offset))
+
     if tag is not None:
         cursor.execute("""
         SELECT *
@@ -57,12 +93,14 @@ def packages():
         LIMIT %s
         OFFSET %s
         """, (tag, per_page, offset))
+
     if id is not None:
         cursor.execute("""
         SELECT *
         FROM packages
         WHERE id = %s
         """, id)
+
     rows = cursor.fetchall()
 
     # Get total count for pagination metadata

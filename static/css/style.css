@@ -30,3 +30,10 @@ a {
 #footer {
     color : #e1ff00ff;
 }
+
+th, td, table{
+    color: #ffeae2;
+    border: 1px solid #ffeae2;
+    border-collapse: collapse;
+    padding: 5px;
+}
