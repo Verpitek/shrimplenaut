@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shrimplenaut - Package management and distribution for Bedrock servers and addons</title>
+    <meta name="description" content="Shrimplenaut is a package management and distribution platform designed for Minecraft Bedrock servers and Bedrock addons.">
+    <meta name="keywords" content="Shrimplenaut, Verpitek, Minecraft Bedrock, Bedrock server, package management, addon distribution, Minecraft addons, server tools, mod management">
+    <meta name="author" content="Verpitek">
+
+    <meta property="og:title" content="Shrimplenaut by Verpitek - Package management and distribution for Bedrock servers and addons">
+    <meta property="og:description" content="Shrimplenaut is a package management and distribution platform designed for Minecraft Bedrock servers and Bedrock addons.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="shrimplenaut.verpitek.com">
+    <meta property="og:image" content="{{ url_for('static', filename='img/shrimplenaut.png') }}">
+    <meta property="og:image:alt" content="Shrimplenaut Logo">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="canonical" href="shrimplenaut.verpitek.com">
+</head>
+<body>
+<div class="container">
+     <ul class="navbar">
+         <li><img class="profile_image" src="{{ github_profile["avatar_url"] }}" height="64px"></li>
+     {% if github_profile != None %}
+         <li><p>logged in as {{ github_profile["username"] }}</p></li>
+         <li><p>user ID: {{ github_profile["id"] }}</p></li>
+         <li><a href="{{ url_for('index') }}">Home</a></li>
+         <li><a href="my_packages.html">my packages</a></li>
+         <li><a href="{{ url_for('static', filename='' ) }}">submit a new package</a></li>
+         <li><a href="logout">logout</a></li>
+         {% else %}
+         <li><a href="login">login</a></li>
+         <style>
+         .profile_image {
+             border: none;
+         }
+         </style>
+         {% endif %}
+</ul>
+</div>
+    <div class="container" id="main" style="text-align: center">
+    </div>
+<script>
+            const parsedResults = {{ results | tojson | safe }};
+            parsedResults.forEach((item) => {
+              document.getElementById("main").innerHTML += `
+              <div class="plugin_container">
+                <h2>${item["name"]}</h2>
+                <a href="${item["repository_url"]}">Download</a>
+              </div>
+              `
+            });
+            document.getElementById("main").innerHTML += `<footer>
+            <p id="footer">&copy; 2025 Verpitek. All rights reserved.</p>
+        </footer>`;
+
+        </script>
+</body>
+</html>

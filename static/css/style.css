@@ -9,6 +9,7 @@
 
 body {
     font-family: Courier, serif;
+    background-color: #313131ff;
 }
 
 h1 {
@@ -36,4 +37,29 @@ th, td, table{
     border: 1px solid #ffeae2;
     border-collapse: collapse;
     padding: 5px;
+}
+
+.plugin_container {
+    padding: 4vh;
+    margin-top: 1vh;
+    border-width: 5px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: #e29a86ff;
+}
+
+.container {
+    padding: 4vh;
+    margin-top: 1vh;
+}
+
+.navbar {
+    list-style: none;
+}
+
+.profile_image {
+    border-width: 5px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: #e29a86ff;
 }
