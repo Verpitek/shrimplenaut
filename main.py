@@ -78,135 +78,145 @@ def authorize():
 def usage():
     return render_template("usage.html")
 
-@app.route("/package_explorer")
-def package_explorer():
-    return render_template("package_explorer.html")
 @app.route("/packages")
 def packages():
     page = request.args.get("page", default=1, type=int)
     per_page = min(request.args.get("per_page", default=10, type=int), 100)
-    tag = request.args.get("tag", default=None, type=str)
-    id = request.args.get("id", default=None, type=str)
-    name = request.args.get("name", default=None, type=str)
-    license = request.args.get("license", default=None, type=str)
-    server_platform = request.args.get("server_platform", default=None, type=str)
-    project_type = request.args.get("project_type", default=None, type=str)
-    search = request.args.get("search", default=None, type=str)
+    tag = request.args.get("tag", type=str)
+    id = request.args.get("id", type=str)
+    name = request.args.get("name", type=str)
+    license = request.args.get("license", type=str)
+    server_platform = request.args.get("server_platform", type=str)
+    project_type = request.args.get("project_type", type=str)
+    search = request.args.get("search", type=str)
 
-    db = pymysql.connect(host=host,
-                         user=user,
-                         password=password,
-                         database=db_name)
-    cursor = db.cursor(pymysql.cursors.DictCursor)
+    try:
+        db = pymysql.connect(host=host, user=user, password=password, database=db_name)
+        cursor = db.cursor(pymysql.cursors.DictCursor)
 
-    offset = (page - 1) * per_page
+        if id:
+            cursor.execute("SELECT * FROM packages WHERE id = %s", (id,))
+            rows = cursor.fetchall()
+            return jsonify({
+                "items": rows,
+                "pagination": {
+                    "page": 1,
+                    "per_page": len(rows),
+                    "total_items": len(rows),
+                    "total_pages": 1 if rows else 0
+                }
+            })
 
-    cursor.execute("""
-                   SELECT *
-                   FROM packages LIMIT %s
-                   OFFSET %s
-                   """, (per_page, offset))
+        base_query = "FROM packages"
+        where_clauses = []
+        params = []
 
-    if search is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE SOUNDEX(name) = SOUNDEX(%s)
-        """, search)
+        if search:
+            where_clauses.append("name LIKE %s")
+            params.append(f"%{search}%")
 
-    if project_type is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE project_type = %s
-        LIMIT %s OFFSET %s
-        """, (project_type, per_page, offset))
-
-    if license is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE license = %s
-        LIMIT %s OFFSET %s
-        """, (license, per_page, offset))
-
-    if server_platform is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE server_platform = %s
-        LIMIT %s OFFSET %s
-        """, (server_platform, per_page, offset))
-
-    if name is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE name = %s
-        LIMIT %s OFFSET %s
-        """, (name, per_page, offset))
-
-    if tag is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages 
-        WHERE tag = %s
-        LIMIT %s
-        OFFSET %s
-        """, (tag, per_page, offset))
-
-    if id is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE id = %s
-        """, id)
-
-    rows = cursor.fetchall()
-
-    # Get total count for pagination metadata
-    cursor.execute("SELECT COUNT(*) AS total_count FROM packages")
-    total_items = cursor.fetchone()
-    total_pages = math.ceil(total_items["total_count"] / per_page)
-
-    return jsonify({
-        "items": rows,
-        "pagination": {
-            "page": page,
-            "per_page": per_page,
-            "total_items": total_items,
-            "total_pages": total_pages
+        filters = {
+            "tag": tag,
+            "name": name,
+            "license": license,
+            "server_platform": server_platform,
+            "project_type": project_type
         }
-    })
+
+        for column, value in filters.items():
+            if value is not None:
+                where_clauses.append(f"{column} = %s")
+                params.append(value)
+
+
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+
+        count_query = f"SELECT COUNT(*) AS total_count {base_query} {where_sql}"
+        cursor.execute(count_query, tuple(params))
+        total_items = cursor.fetchone()["total_count"]
+        total_pages = math.ceil(total_items / per_page) if total_items > 0 else 0
+
+
+        offset = (page - 1) * per_page
+        data_query = f"SELECT * {base_query} {where_sql} LIMIT %s OFFSET %s"
+        final_params = tuple(params) + (per_page, offset)
+        cursor.execute(data_query, final_params)
+        rows = cursor.fetchall()
+
+        return jsonify({
+            "items": rows,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total_items": total_items,
+                "total_pages": total_pages
+            }
+        })
+
+    except pymysql.MySQLError as e:
+        return jsonify({"error": f"Database error: {e}"}), 500
+    finally:
+        if 'db' in locals() and db.open:
+            db.close()
 
 @app.route('/search', methods=['GET'])
 def search():
-    db = pymysql.connect(host=host,
-                         user=user,
-                         password=password,
-                         database=db_name)
-    cursor = db.cursor(pymysql.cursors.DictCursor)
+    try:
+        db = pymysql.connect(host=host,
+                             user=user,
+                             password=password,
+                             database=db_name)
+        cursor = db.cursor(pymysql.cursors.DictCursor)
 
-    page = request.args.get("page", default=1, type=int)
-    per_page = min(request.args.get("per_page", default=10, type=int), 100)
-    offset = (page - 1) * per_page
+        page = request.args.get("page", default=1, type=int)
+        per_page = min(request.args.get("per_page", default=10, type=int), 100)
+        offset = (page - 1) * per_page
+        query = request.args.get('search_query')
 
-    query = request.args.get('search_query')
+        github_profile = session.get("github_profile", None)
 
-    if search is not None:
-        cursor.execute("""
-        SELECT *
-        FROM packages
-        WHERE name LIKE %s
-        ORDER BY name
-        LIMIT %s
-        OFFSET %s
-        """, (f"%{query}%", per_page, offset))
+        base_query = "FROM packages"
+        where_clauses = []
+        params = []
 
-    rows = cursor.fetchall()
-    github_profile = session.get("github_profile", None)
+        where_clauses.append("name LIKE %s")
+        params.append(f"%{query}%")
 
-    return render_template("results.html", github_profile=github_profile, results=rows)
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+
+        count_query = f"SELECT COUNT(*) AS total_count {base_query} {where_sql}"
+        cursor.execute(count_query, tuple(params))
+        total_items = cursor.fetchone()["total_count"]
+        total_pages = math.ceil(total_items / per_page) if total_items > 0 else 0
+
+        offset = (page - 1) * per_page
+        data_query = f"SELECT * {base_query} {where_sql} LIMIT %s OFFSET %s"
+        final_params = tuple(params) + (per_page, offset)
+        cursor.execute(data_query, final_params)
+        rows = cursor.fetchall()
+
+        results = {
+            "items": rows,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total_items": total_items,
+                "total_pages": total_pages
+            }
+        }
+
+
+        return render_template("results.html", github_profile=github_profile, results=results, query=query)
+
+    except pymysql.MySQLError as e:
+        return jsonify({"error": f"Database error: {e}"}), 500
+    finally:
+        if 'db' in locals() and db.open:
+            db.close()
 
 if __name__ == "__main__":
     oauth.init_app(app)

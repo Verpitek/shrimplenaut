@@ -32,6 +32,7 @@
          <li><a href="{{ url_for('static', filename='' ) }}">submit a new package</a></li>
          <li><a href="logout">logout</a></li>
          {% else %}
+         <li><a href="{{ url_for('index') }}">Home</a></li>
          <li><a href="login">login</a></li>
          <style>
          .profile_image {
@@ -42,18 +43,59 @@
 </ul>
 </div>
     <div class="container" id="main" style="text-align: center">
+        <form action="/search" method="GET">
+              <input type="text" name="search_query" placeholder="Search..." class="search_input">
+              <button type="submit" class="search_button">Search</button>
+            </form>
     </div>
 <script>
             const parsedResults = {{ results | tojson | safe }};
-            parsedResults.forEach((item) => {
+            const parsedItems = parsedResults["items"];
+            const parsedPagination = parsedResults["pagination"]
+
+            if (parsedPagination["total_items"] === 1) {
+                document.getElementById("main").innerHTML += `<h2>found ${parsedPagination["total_items"]} packages with query "{{ query }}"</h2>`
+            }
+            else if (parsedPagination["total_items"] > 1) {
+                document.getElementById("main").innerHTML += `<h2>found 1 package with query "{{ query }}"</h2>`
+            }
+            else {
+                document.getElementById("main").innerHTML += `<h2>found no packages with query "{{ query }}"</h2>`
+            }
+            console.log(parsedItems)
+            parsedItems.forEach((item) => {
               document.getElementById("main").innerHTML += `
               <div class="plugin_container">
-                <h2>${item["name"]}</h2>
-                <a href="${item["repository_url"]}">Download</a>
+                <div style="margin-right:10vw">
+                    <h2>${item["name"]}</h2>
+                    <p>author: ${item["author"]}</p>
+                    <p>type: ${item["project_type"]}</p>
+                    <p>license: ${item["license"]}</p>
+                    <a href="${item["repository_url"]}">Download ${item["current_version"]}</a>
+                </div>
+                <div class="package_icon">
+                   <img src=${item["package_icon"]} height="128px" width="auto" alt="no package icon" style="color: #ffeae2;">
+                </div>
               </div>
               `
             });
-            document.getElementById("main").innerHTML += `<footer>
+            document.getElementById("main").innerHTML += `
+        <div class="pagination">
+        {% if results.pagination.page > 1 %}
+            <a href="{{ url_for('search', search_query=query, page=results.pagination.page - 1, per_page=results.pagination.per_page) }}">
+                &lt;&lt; Previous page
+            </a>
+        {% endif %}
+
+        <p>Page {{ results.pagination.page }} of {{ results.pagination.total_pages }}</p>
+
+        {% if results.pagination.page < results.pagination.total_pages %}
+            <a href="{{ url_for('search', search_query=query, page=results.pagination.page + 1, per_page=results.pagination.per_page) }}">
+                Next page &gt;&gt;
+            </a>
+        {% endif %}
+    </div>
+        <footer>
             <p id="footer">&copy; 2025 Verpitek. All rights reserved.</p>
         </footer>`;
 

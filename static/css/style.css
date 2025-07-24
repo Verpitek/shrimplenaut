@@ -40,12 +40,17 @@ th, td, table{
 }
 
 .plugin_container {
+    text-align: left;
     padding: 4vh;
     margin-top: 1vh;
     border-width: 5px;
     border-style: solid;
     border-radius: 5px;
     border-color: #e29a86ff;
+    margin-left: 30vw;
+    margin-right: 30vw;
+    display: flex;
+    align-content: center;
 }
 
 .container {
@@ -62,4 +67,18 @@ th, td, table{
     border-style: solid;
     border-radius: 5px;
     border-color: #e29a86ff;
+}
+
+.search_input {
+    background-color: gray;
+    border: none;
+    border-radius: 5px;
+    color: #ffeae2;
+}
+
+.search_button {
+    background-color: gray;
+    border: none;
+    border-radius: 5px;
+    color: #ffeae2;
 }
