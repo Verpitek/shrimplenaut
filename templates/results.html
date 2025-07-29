@@ -28,11 +28,10 @@
          <li><p>logged in as {{ github_profile["username"] }}</p></li>
          <li><p>user ID: {{ github_profile["id"] }}</p></li>
          <li><a href="{{ url_for('index') }}">Home</a></li>
-         <li><a href="my_packages.html">my packages</a></li>
-         <li><a href="{{ url_for('static', filename='' ) }}">submit a new package</a></li>
+         <li><a href="{{ url_for('my_packages') }}">my packages</a></li>
+         <li><a href="{{ url_for('submit_package') }}">submit a new package</a></li>
          <li><a href="logout">logout</a></li>
          {% else %}
-         <li><a href="{{ url_for('index') }}">Home</a></li>
          <li><a href="login">login</a></li>
          <style>
          .profile_image {

@@ -47,8 +47,6 @@ th, td, table{
     border-style: solid;
     border-radius: 5px;
     border-color: #e29a86ff;
-    margin-left: 30vw;
-    margin-right: 30vw;
     display: flex;
     align-content: center;
 }

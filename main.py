@@ -43,6 +43,7 @@ def index():
 
     cursor.execute("SELECT COUNT(*) AS total_count FROM packages")
     total_items = cursor.fetchone()
+
     github_profile = session.get("github_profile", None)
 
     return render_template("index.html",
@@ -72,12 +73,71 @@ def authorize():
         "followers": profile["followers"],
         "id": profile["id"]
     }
+
     return redirect(url_for("index"))
 
 @app.route("/usage")
 def usage():
     return render_template("usage.html")
 
+@app.route("/my_packages")
+def my_packages():
+    github_profile = session.get("github_profile", None)
+    author = github_profile["id"]
+
+    try:
+        db = pymysql.connect(host=host, user=user, password=password, database=db_name)
+        cursor = db.cursor(pymysql.cursors.DictCursor)
+
+        page = request.args.get("page", default=1, type=int)
+        per_page = min(request.args.get("per_page", default=10, type=int), 100)
+        offset = (page - 1) * per_page
+
+        github_profile = session.get("github_profile", None)
+
+        base_query = "FROM packages"
+        where_clauses = ["author = %s"]
+        params = [f"{author}"]
+
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+
+        count_query = f"SELECT COUNT(*) AS total_count {base_query} {where_sql}"
+        cursor.execute(count_query, tuple(params))
+        total_items = cursor.fetchone()["total_count"]
+        total_pages = math.ceil(total_items / per_page) if total_items > 0 else 0
+
+        offset = (page - 1) * per_page
+        data_query = f"SELECT * {base_query} {where_sql} LIMIT %s OFFSET %s"
+        final_params = tuple(params) + (per_page, offset)
+        print(data_query, final_params)
+        cursor.execute(data_query, final_params)
+        rows = cursor.fetchall()
+
+        results = {
+            "items": rows,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total_items": total_items,
+                "total_pages": total_pages
+            }
+        }
+
+        print(results)
+
+        return render_template("my_packages.html", github_profile=github_profile, results=results)
+
+    except pymysql.MySQLError as e:
+        return jsonify({"error": f"Database error: {e}"}), 500
+    finally:
+        if 'db' in locals() and db.open:
+            db.close()
+
+@app.route("/submit_package")
+def submit_package():
+    return render_template("submit_package.html")
 @app.route("/packages")
 def packages():
     page = request.args.get("page", default=1, type=int)
