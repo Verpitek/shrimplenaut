@@ -111,7 +111,6 @@ def my_packages():
         offset = (page - 1) * per_page
         data_query = f"SELECT * {base_query} {where_sql} LIMIT %s OFFSET %s"
         final_params = tuple(params) + (per_page, offset)
-        print(data_query, final_params)
         cursor.execute(data_query, final_params)
         rows = cursor.fetchall()
 
@@ -124,8 +123,6 @@ def my_packages():
                 "total_pages": total_pages
             }
         }
-
-        print(results)
 
         return render_template("my_packages.html", github_profile=github_profile, results=results)
 
