@@ -1,9 +1,9 @@
     <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background: #444444; background-image: url({{ random_background }})">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shrimplenaut- Package management and distribution for Bedrock servers and addons</title>
+    <title>Shrimplenaut - Package management and distribution for Bedrock servers and addons</title>
     <meta name="description" content="Shrimplenaut is a package management and distribution platform designed for Minecraft Bedrock servers and Bedrock addons.">
     <meta name="keywords" content="Shrimplenaut, Verpitek, Minecraft Bedrock, Bedrock server, package management, addon distribution, Minecraft addons, server tools, mod management">
     <meta name="author" content="Verpitek">
@@ -11,14 +11,16 @@
     <meta property="og:title" content="Shrimplenaut by Verpitek - Package management and distribution for Bedrock servers and addons">
     <meta property="og:description" content="Shrimplenaut is a package management and distribution platform designed for Minecraft Bedrock servers and Bedrock addons.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="shrimplenaut.verpitek.com"> <meta property="og:image" content="{{ url_for('static', filename='img/shrimplenaut.png') }}"> <meta property="og:image:alt" content="Shrimplenaut Logo">
+    <meta property="og:url" content="shrimplenaut.verpitek.com">
+    <meta property="og:image" content="{{ url_for('static', filename='img/shrimplenaut.png') }}">
+    <meta property="og:image:alt" content="Shrimplenaut Logo">
 
-
-     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-    <link rel="canonical" href="shrimplenaut.verpitek.com"> </head>
-<body>
+    <link rel="canonical" href="shrimplenaut.verpitek.com">
+    <link rel="preload" as="image" href="{{ random_background }}">
+</head>
         <section>
             <div style="text-align: center">
             <nav><a href="{{ url_for('index') }}">Home</a></nav>

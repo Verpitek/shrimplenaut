@@ -1,15 +1,49 @@
 @font-face {
-    font-family: 'Courier'; /* Give your font a name */
-    src: url('../fonts/CourierPrime-Regular.woff2') format('woff2'), /* Modern browsers */
-         url('../fonts/CourierPrime-Regular.woff') format('woff');   /* Older browsers */
+    font-family: 'Monocraft'; /* Give your font a name */
+    src: url('../fonts/Monocraft-nerd-fonts-patched.woff') format('woff');   /* Older browsers */
     font-weight: normal; /* Define the weight for this specific file */
     font-style: normal;
     font-display: swap; /* Important for performance: show fallback text while loading */
 }
 
+html {
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
 body {
-    font-family: Courier, serif;
+    margin-left: 10vw;
+    margin-right: 10vw;
     background-color: #313131ff;
+    border-radius: 10px;
+    font-family: Monocraft
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    body {
+        margin-left: 1vw;
+        margin-right: 1vw;
+    }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+    margin-left: 2vw;
+    margin-right: 2vw;
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+    margin-left: 5vw;
+    margin-right: 5vw;
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+    margin-left: 10vw;
+    margin-right: 10vw;
 }
 
 h1 {
@@ -43,17 +77,26 @@ th, td, table{
     text-align: left;
     padding: 4vh;
     margin-top: 1vh;
+
+    backdrop-filter: grayscale(100);
+    display: flex;
+    align-content: center;
+    margin-bottom: 2vh;
+
     border-width: 5px;
     border-style: solid;
     border-radius: 5px;
     border-color: #e29a86ff;
-    display: flex;
-    align-content: center;
 }
 
 .container {
     padding: 4vh;
     margin-top: 1vh;
+    border-radius: 10px;
+}
+
+.package_icon {
+    margin-right: 1vw;
 }
 
 .navbar {
@@ -63,20 +106,26 @@ th, td, table{
 .profile_image {
     border-width: 5px;
     border-style: solid;
-    border-radius: 5px;
+    border-radius: 10px;
     border-color: #e29a86ff;
 }
 
 .search_input {
-    background-color: gray;
-    border: none;
+    background-color: rgba(255, 250, 240, 0);
+    border: solid;
     border-radius: 5px;
-    color: #ffeae2;
+    color: #e29a86;
+    font-family: Monocraft;
 }
 
 .search_button {
-    background-color: gray;
-    border: none;
+    background-color: rgba(255, 250, 240, 0);
+    border: solid;
     border-radius: 5px;
+    color: #e29a86;
+    font-family: Monocraft;
+}
+
+.submit_label {
     color: #ffeae2;
 }

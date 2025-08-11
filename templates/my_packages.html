@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-image: url({{ random_background }})">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <link rel="canonical" href="shrimplenaut.verpitek.com">
+    <link rel="preload" as="image" href="{{ random_background }}">
 </head>
 <body>
 <div class="container">
@@ -34,6 +35,7 @@
          <li><a href="logout">logout</a></li>
          {% else %}
          <li><a href="login">login</a></li>
+         <li><a href="{{ url_for('index') }}">Home</a></li>
          <style>
          .profile_image {
              border: none;
@@ -62,15 +64,15 @@
             parsedItems.forEach((item) => {
               document.getElementById("main").innerHTML += `
               <div class="plugin_container">
+                <div class="package_icon">
+                   <img src=${item["package_icon"]} height="128px" width="auto" alt="no package icon" style="color: #ffeae2;">
+                </div>
                 <div style="margin-right:10vw">
                     <h2>${item["name"]}</h2>
                     <p>author: ${item["author"]}</p>
                     <p>type: ${item["project_type"]}</p>
                     <p>license: ${item["license"]}</p>
                     <a href="${item["repository_url"]}">Download ${item["current_version"]}</a>
-                </div>
-                <div class="package_icon">
-                   <img src=${item["package_icon"]} height="128px" width="auto" alt="no package icon" style="color: #ffeae2;">
                 </div>
               </div>
               `
