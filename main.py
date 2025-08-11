@@ -11,6 +11,8 @@ from authlib.integrations.flask_client import OAuth
 import threading
 import random
 import discord
+import hypercorn.asyncio
+from hypercorn.config import Config
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -66,6 +68,7 @@ try:
     client_id = os.environ.get("GITHUB_CLIENT_ID")
     client_secret = os.environ.get("GITHUB_CLIENT_SECRET")
     discord_bot_token = os.environ.get("DISCORD_BOT_TOKEN")
+    port = int(os.environ.get("PORT"))
 except:
     warnings.warn("failed to load environment variables")
 app = Flask(__name__)
@@ -329,8 +332,9 @@ def search():
         if "db" in locals() and db.open:
             db.close()
 
+
 @app.route("/submit_package_for_approval", methods=["GET"])
-def submit_package_for_approval():
+async def submit_package_for_approval():
     package_name = request.args.get("package_name")
     project_type = request.args.get("project_type")
     current_version = request.args.get("current_version")
@@ -340,20 +344,15 @@ def submit_package_for_approval():
     tag = request.args.get("tag")
 
     github_profile = session.get("github_profile", None)
-    if github_profile != None:
+    if github_profile is not None:
         try:
-            db = pymysql.connect(host=host,
-                                 user=user,
-                                 password=password,
-                                 database=db_name)
+            # ... (database logic is fine, no changes needed here) ...
+            db = pymysql.connect(host=host, user=user, password=password, database=db_name)
             cursor = db.cursor(pymysql.cursors.DictCursor)
-
             command_prep = "INSERT INTO not_approved (name, author, project_type, current_version, repository_url) VALUES (%s, %s, %s, %s, %s)"
             values = (package_name, github_profile["id"], project_type, current_version, repository_url)
-            global global_package_values
-            global_package_values = values
-            global global_package_name
-            global_package_name = package_name
+            # You can remove these globals, they're bad practice and not thread-safe.
+            # Instead, you should pass the values to the Discord message.
             cursor.execute(command_prep, values)
             db.commit()
 
@@ -367,13 +366,19 @@ project type: `{project_type}`
 current version: `{current_version}`
 repository url: {repository_url}
 """
-                message_queue.put((channel_id, message_content, values, package_name))
+                message_queue.put_nowait((channel_id, message_content, values, package_name))
 
             except Exception as e:
                 print(e)
+
             return "package submitted :3"
         except pymysql.MySQLError as e:
             return jsonify({"error": f"Database error: {e}"}), 500
+        finally:
+            if "db" in locals() and db.open:
+                db.close()
+    else:
+        return "You must be logged in to submit a package.", 401
 
 
 class View(discord.ui.View):
@@ -423,10 +428,18 @@ def run_flask():
     oauth.init_app(app)
     app.run(debug=False)
 
+client = MyClient(intents=intents)
+
+async def main():
+    config = Config()
+    config.bind = [f"0.0.0.0:{port}"]
+
+    # Run both the Discord bot and the Flask app concurrently
+    await asyncio.gather(
+        client.start(discord_bot_token),
+        hypercorn.asyncio.serve(app, config)
+    )
 
 if __name__ == "__main__":
-    flask_thread_flask = threading.Thread(target=run_flask)
-    flask_thread_flask.start()
-
-    client = MyClient(intents=intents)
-    client.run(discord_bot_token)
+    # Get the event loop and run the main function
+    asyncio.run(main())
