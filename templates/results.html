@@ -45,10 +45,17 @@
 </ul>
 </div>
     <div class="container" id="main" style="text-align: center">
-        <form action="/search" method="GET">
-              <input type="text" name="search_query" placeholder="Search..." class="search_input">
-              <button type="submit" class="search_button">Search</button>
-            </form>
+<form action="/search" method="GET">
+  <input type="text" name="search_query" placeholder="Search..." class="search_input">
+  <select name="sort_by" class="search_button">
+    <option value="upload_date_asc">Upload Date (from oldest)</option>
+    <option value="upload_date_desc">Upload Date (from newest)</option>
+    <option value="updated_asc">Last Updated (from oldest)</option>
+    <option value="updated_desc">Last Updated (from newest)</option>
+    <option value="random">Random</option>
+  </select>
+  <button type="submit" class="search_button">Search</button>
+</form>
     </div>
 <script>
             const parsedResults = {{ results | tojson | safe }};

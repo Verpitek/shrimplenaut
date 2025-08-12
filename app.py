@@ -1,5 +1,7 @@
 import asyncio
 import queue
+from idlelib import query
+
 import pymysql
 import pymysql.cursors
 from flask import Flask, jsonify, request, render_template, url_for, redirect, session
@@ -8,49 +10,10 @@ import os
 import warnings
 from dotenv import load_dotenv
 from authlib.integrations.flask_client import OAuth
-import threading
 import random
-import discord
-import hypercorn.asyncio
-from hypercorn.config import Config
+import requests
+import json
 load_dotenv()
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-message_queue = queue.Queue()
-
-class MyClient(discord.Client):
-    async def on_ready(self):
-        print(f"Logged on as {self.user}!")
-        self.loop.create_task(self.process_message_queue())
-
-    async def process_message_queue(self):
-        while True:
-            try:
-                channel_id, message_content, values, package_name = message_queue.get_nowait()
-
-                channel = self.get_channel(channel_id)
-                if channel:
-                    approval_view = View()
-
-                    await channel.send(message_content, view=approval_view)
-                else:
-                    print(f"Channel with ID {channel_id} not found.")
-
-            except queue.Empty:
-                pass
-            except ValueError:
-                print("Discarding malformed item from queue.")
-                try:
-                    message_queue.get_nowait()
-                except queue.Empty:
-                    pass
-
-            await asyncio.sleep(1)
-
-
-
 
 # backgrounds
 backgrounds_unfiltered = os.listdir("static/img/backgrounds")
@@ -103,6 +66,7 @@ def index():
                            package_count=total_items["total_count"],
                            github_profile=github_profile,
                            random_background=random.choice(backgrounds_filtered),
+                           custom_script=""
                            )
 
 @app.route("/login")
@@ -136,7 +100,10 @@ def usage():
 
 @app.route("/my_packages")
 def my_packages():
+
     github_profile = session.get("github_profile", None)
+    if github_profile == None:
+        return "You are not logged in!"
     author = github_profile["id"]
 
     try:
@@ -288,6 +255,7 @@ def search():
         per_page = min(request.args.get("per_page", default=10, type=int), 100)
         offset = (page - 1) * per_page
         query = request.args.get("search_query")
+        sorting_query = request.args.get("sort_by")
 
         github_profile = session.get("github_profile", None)
 
@@ -297,6 +265,18 @@ def search():
 
         where_clauses.append("name LIKE %s")
         params.append(f"%{query}%")
+
+        sorting_sql = "ORDER BY id ASC"
+        if sorting_query == "upload_date_asc":
+            sorting_sql = "ORDER BY created_at ASC"
+        if sorting_query == "upload_date_desc":
+            sorting_sql = "ORDER BY created_at DESC"
+        if sorting_query == "updated_asc":
+            sorting_sql = "ORDER BY last_updated ASC"
+        if sorting_query == "updated_desc":
+            sorting_sql = "ORDER BY last_updated DESC"
+        if sorting_query == "random":
+            sorting_sql = "ORDER BY RAND()"
 
         where_sql = ""
         if where_clauses:
@@ -308,7 +288,7 @@ def search():
         total_pages = math.ceil(total_items / per_page) if total_items > 0 else 0
 
         offset = (page - 1) * per_page
-        data_query = f"SELECT * {base_query} {where_sql} LIMIT %s OFFSET %s"
+        data_query = f"SELECT * {base_query} {where_sql} {sorting_sql} LIMIT %s OFFSET %s"
         final_params = tuple(params) + (per_page, offset)
         cursor.execute(data_query, final_params)
         rows = cursor.fetchall()
@@ -332,9 +312,8 @@ def search():
         if "db" in locals() and db.open:
             db.close()
 
-
 @app.route("/submit_package_for_approval", methods=["GET"])
-async def submit_package_for_approval():
+def submit_package_for_approval():
     package_name = request.args.get("package_name")
     project_type = request.args.get("project_type")
     current_version = request.args.get("current_version")
@@ -342,104 +321,41 @@ async def submit_package_for_approval():
     license = request.args.get("license")
     versions_tested = request.args.get("versions_tested")
     tag = request.args.get("tag")
+    package_icon = request.args.get("package_icon")
 
     github_profile = session.get("github_profile", None)
-    if github_profile is not None:
+    db = pymysql.connect(host=host,
+                         user=user,
+                         password=password,
+                         database=db_name)
+    cursor = db.cursor(pymysql.cursors.DictCursor)
+    values = (package_name, github_profile["id"], project_type, current_version, versions_tested, repository_url, license, tag, package_icon)
+    if github_profile != None:
         try:
-            # ... (database logic is fine, no changes needed here) ...
-            db = pymysql.connect(host=host, user=user, password=password, database=db_name)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-            command_prep = "INSERT INTO not_approved (name, author, project_type, current_version, repository_url) VALUES (%s, %s, %s, %s, %s)"
-            values = (package_name, github_profile["id"], project_type, current_version, repository_url)
-            # You can remove these globals, they're bad practice and not thread-safe.
-            # Instead, you should pass the values to the Discord message.
+            command_prep = "INSERT INTO not_approved (name, author, project_type, current_version,versions_tested, repository_url, license, tag, package_icon) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
             cursor.execute(command_prep, values)
             db.commit()
 
-            try:
-                channel_id = 1404400787265818655
-                channel = client.get_channel(channel_id)
-                message_content = f"""
-A new package, ***{package_name}***, has been submitted for approval!
-github profile `{github_profile["id"]}`
-project type: `{project_type}`
-current version: `{current_version}`
-repository url: {repository_url}
-"""
-                message_queue.put_nowait((channel_id, message_content, values, package_name))
-
-            except Exception as e:
-                print(e)
-
-            return "package submitted :3"
         except pymysql.MySQLError as e:
             return jsonify({"error": f"Database error: {e}"}), 500
-        finally:
-            if "db" in locals() and db.open:
-                db.close()
-    else:
-        return "You must be logged in to submit a package.", 401
+    cursor.execute("SELECT COUNT(*) AS total_count FROM packages")
+    total_items = cursor.fetchone()
+    if "db" in locals() and db.open:
+        db.close()
 
+    url = 'http://127.0.0.1:4747/discord_payload'
+    try:
+        discord_payload = requests.post(url, json=values)
+    except:
+        print("Discord payload error")
 
-class View(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-
-    @discord.ui.button(label="Approve", style=discord.ButtonStyle.green, emoji="✅")
-    async def approve(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(
-            content=f"✅ **APPROVED by {interaction.user.mention}**\n~~{interaction.message.content}~~",
-            view=None
-        )
-        try:
-            db = pymysql.connect(host=host,
-                                 user=user,
-                                 password=password,
-                                 database=db_name)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-            command_approval = "INSERT INTO packages (name, author, project_type, current_version, repository_url) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(command_approval, global_package_values)
-            command_approval = "DELETE FROM not_approved WHERE name = %s"
-            cursor.execute(command_approval, (global_package_name,))
-        except pymysql.MySQLError as e:
-            return jsonify({"error": f"Database error: {e}"}), 500
-        db.commit()
-
-    @discord.ui.button(label="Disapprove", style=discord.ButtonStyle.red, emoji="❌")
-    async def disapprove(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(
-            content=f"❌ **DISAPPROVED by {interaction.user.mention}**\n~~{interaction.message.content}~~",
-            view=None
-        )
-        try :
-            db = pymysql.connect(host=host,
-                                 user=user,
-                                 password=password,
-                                 database=db_name)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-            command_approval = "DELETE FROM not_approved WHERE name = %s"
-            cursor.execute(command_approval, (global_package_name,))
-        except pymysql.MySQLError as e:
-            return jsonify({"error": f"Database error: {e}"}), 500
-        db.commit()
-
-
-def run_flask():
-    oauth.init_app(app)
-    app.run(debug=False)
-
-client = MyClient(intents=intents)
-
-async def main():
-    config = Config()
-    config.bind = [f"0.0.0.0:{port}"]
-
-    # Run both the Discord bot and the Flask app concurrently
-    await asyncio.gather(
-        client.start(discord_bot_token),
-        hypercorn.asyncio.serve(app, config)
-    )
+    return render_template("index.html",
+                           package_count=total_items["total_count"],
+                           github_profile=github_profile,
+                           random_background=random.choice(backgrounds_filtered),
+                           custom_script="The package has been submitted for approval"
+                           )
 
 if __name__ == "__main__":
-    # Get the event loop and run the main function
-    asyncio.run(main())
+    oauth.init_app(app)
+    app.run(debug=False, port=port)
